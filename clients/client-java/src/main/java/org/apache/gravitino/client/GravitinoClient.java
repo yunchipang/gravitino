@@ -35,6 +35,7 @@ import org.apache.gravitino.authorization.Privilege;
 import org.apache.gravitino.authorization.Role;
 import org.apache.gravitino.authorization.SecurableObject;
 import org.apache.gravitino.authorization.User;
+import org.apache.gravitino.dto.responses.MetadataObjectListResponse;
 import org.apache.gravitino.exceptions.CatalogAlreadyExistsException;
 import org.apache.gravitino.exceptions.CatalogInUseException;
 import org.apache.gravitino.exceptions.GroupAlreadyExistsException;
@@ -556,6 +557,21 @@ public class GravitinoClient extends GravitinoClientBase
   @Override
   public boolean deleteTag(String name) {
     return getMetalake().deleteTag(name);
+  }
+
+  public MetadataObject[] listMetadataObjectsForTags(String... tagNames) {
+    String tagsParam = String.join(",", tagNames);
+    String url = String.format("api/metalakes/%s/tags/objects?tags=%s", metalake, tagsParam);
+
+    MetadataObjectListResponse resp =
+            restClient.get(
+                    url,
+                    MetadataObjectListResponse.class,
+                    Collections.emptyMap(),
+                    ErrorHandlers.tagErrorHandler());
+
+    resp.validate();
+    return resp.getMetadataObjects();
   }
 
   /** Builder class for constructing a GravitinoClient. */
